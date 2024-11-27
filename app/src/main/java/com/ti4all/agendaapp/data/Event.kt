@@ -12,7 +12,7 @@ data class Event(
     val time : String,
     val cep : String,
     val street : String,
-    val number : Int,
+    val number : String,
     val neighborhood : String,
     val city : String,
     val state : String,

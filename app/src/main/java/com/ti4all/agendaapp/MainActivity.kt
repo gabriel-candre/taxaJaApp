@@ -2,6 +2,7 @@ package com.ti4all.agendaapp
 
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -34,6 +35,9 @@ import androidx.compose.ui.platform.LocalContext
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import retrofit2.Call
+import retrofit2.Response
+import retrofit2.Callback
 
 class MainActivity : ComponentActivity() {
     private val viewModel: EventViewModel by viewModels()
@@ -174,7 +178,7 @@ fun EventScreen(viewModel: EventViewModel) {
             )
         } else if (showDialog) {
             EventFormDialog(
-                event = Event(title = "", time = "", date = "", cep = "", street = "", number = 0, neighborhood = "", city = "", state = "", description = "", imageUrl = ""), // Passa um novo objeto vazio para adicionar
+                event = Event(title = "", time = "", date = "", cep = "", street = "", number = "", neighborhood = "", city = "", state = "", description = "", imageUrl = ""), // Passa um novo objeto vazio para adicionar
                 isEditMode = false, // Indica que estamos incluindo
                 onDismissRequest = { showDialog = false },
                 onAddClick = { newEvent ->
@@ -234,6 +238,29 @@ fun EventScreen(viewModel: EventViewModel) {
                         var description by remember { mutableStateOf(event.description) }
                         var image by remember { mutableStateOf(event.imageUrl) }
 
+                        val context = LocalContext.current
+
+                        fun fetchCepData(cep: String) {
+                            RetrofitClient.instance.getCep(cep).enqueue(object : Callback<CepResponse> {
+                                override fun onResponse(call: Call<CepResponse>, response: Response<CepResponse>) {
+                                    if (response.isSuccessful) {
+                                        response.body()?.let {
+                                            street = it.logradouro
+                                            neighborhood = it.bairro
+                                            city = it.localidade
+                                            state = it.uf
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "CEP não encontrado", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+
+                                override fun onFailure(call: Call<CepResponse>, t: Throwable) {
+                                    Toast.makeText(context, "Erro: ${t.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            })
+                        }
+
                         OutlinedTextField(
                             value = title,
                             onValueChange = { title = it },
@@ -257,7 +284,11 @@ fun EventScreen(viewModel: EventViewModel) {
 
                         OutlinedTextField(
                             value = cep,
-                            onValueChange = { cep = it },
+                            onValueChange = {
+                                cep = it
+                                if (cep.length == 8) {
+                                    fetchCepData(cep)
+                                } },
                             label = { Text("CEP") }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -270,8 +301,8 @@ fun EventScreen(viewModel: EventViewModel) {
                         Spacer(modifier = Modifier.height(8.dp))
 
                         OutlinedTextField(
-                            value = number.toString(),
-                            onValueChange = { number = it.toInt() },
+                            value = number,
+                            onValueChange = { number = it },
                             label = { Text("Number") }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -332,7 +363,6 @@ fun EventScreen(viewModel: EventViewModel) {
                         ) {
                             Button(
                                 onClick = {
-                                    // Ajustando chamada da onAddClick
                                     onAddClick(
                                         event.copy(
                                             title = title,
@@ -347,15 +377,14 @@ fun EventScreen(viewModel: EventViewModel) {
                                             description = description,
                                             imageUrl = image
                                         )
-                                    ) // Atualiza o evento
+                                    )
                                     onDismissRequest()
                                 },
                                 modifier = Modifier.weight(0.5f), // Para ocupar espaço igual
                                 enabled = !isEditMode // Desabilitar se estiver em modo de edição
                             ) {
-                                Text(" + ")
+                                Text(" Salvar ")
                             }
-
                             Spacer(modifier = Modifier.width(8.dp))
 
                             Button(

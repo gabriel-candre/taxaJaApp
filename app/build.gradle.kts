@@ -78,6 +78,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation ("com.google.accompanist:accompanist-permissions:0.31.5-beta")
     implementation ("com.google.accompanist:accompanist-glide:0.15.0")
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
 }
 
 tasks.withType<KotlinCompile> {
