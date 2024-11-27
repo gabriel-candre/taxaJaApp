@@ -72,7 +72,7 @@ fun EventList(event: Event, onClick: (Event) -> Unit, onEditClick: (Event) -> Un
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable { expanded = !expanded }, // Adicionando a ação de clique
+            .clickable { expanded = !expanded },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
@@ -143,7 +143,7 @@ fun EventList(event: Event, onClick: (Event) -> Unit, onEditClick: (Event) -> Un
 fun EventScreen(viewModel: EventViewModel) {
     val eventList by viewModel.eventList.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
-    var selectedEvent by remember { mutableStateOf<Event?>(null) } // Evento selecionado
+    var selectedEvent by remember { mutableStateOf<Event?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.listarTodos()  }
@@ -182,33 +182,33 @@ fun EventScreen(viewModel: EventViewModel) {
         }
         if (showDialog && selectedEvent != null) {
             EventFormDialog(
-                event = selectedEvent!!, // Passa o evento selecionado
-                isEditMode = true, // Indica que estamos editando
+                event = selectedEvent!!,
+                isEditMode = true,
                 onDismissRequest = { showDialog = false },
                 onAddClick = { newEvent ->
                     viewModel.inserir(newEvent)
                     showDialog = false
                 },
-                // Evocando viewModel.atualizar
+
                 onEditClick = { updatedEvent ->
-                    viewModel.atualizar(updatedEvent) // Atualiza o evento
+                    viewModel.atualizar(updatedEvent)
                     showDialog = false
                 },
                 onDeleteClick = { id ->
-                    viewModel.deletar(id) // Chama a função de deletar
+                    viewModel.deletar(id)
                     showDialog = false
                 }
             )
         } else if (showDialog) {
             EventFormDialog(
                 event = Event(title = "", time = "", date = "", cep = "", street = "", number = "", neighborhood = "", city = "", state = "", description = "", imageUrl = ""), // Passa um novo objeto vazio para adicionar
-                isEditMode = selectedEvent != null, // Indica que estamos incluindo
+                isEditMode = selectedEvent != null,
                 onDismissRequest = {
                     showDialog = false
                     selectedEvent = null },
 
                 onAddClick = { newEvent ->
-                    viewModel.inserir(newEvent) // Adiciona novo contato
+                    viewModel.inserir(newEvent)
                     showDialog = false
                 },
                 onEditClick = {  },
@@ -220,12 +220,12 @@ fun EventScreen(viewModel: EventViewModel) {
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable
     fun EventFormDialog(
-        event: Event, // Novo parâmetro para receber o contato
-        isEditMode: Boolean, // Sinaliza modo de operação da função
+        event: Event,
+        isEditMode: Boolean,
         onDismissRequest: () -> Unit,
-        onAddClick: (Event) -> Unit, // Altera para receber um objeto Agenda
+        onAddClick: (Event) -> Unit,
         onEditClick: (Event) -> Unit,
-        onDeleteClick: (Int) -> Unit // Função para excluir o contato
+        onDeleteClick: (Int) -> Unit
     ) {
         val context = LocalContext.current
         val imageUri = remember { mutableStateOf<Uri?>(null) }
@@ -398,8 +398,8 @@ fun EventScreen(viewModel: EventViewModel) {
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp)) // Espaço antes do divisor
-                        Divider() // Linha separadora
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Divider()
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Row(
@@ -487,7 +487,7 @@ fun EventScreen(viewModel: EventViewModel) {
                                             },
                                             modifier = Modifier.weight(1f),
                                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                                            border = BorderStroke(1.dp, Color(0xFFD32F2F)) //Verde
+                                            border = BorderStroke(1.dp, Color(0xFFD32F2F)) //Vermelho
                                         ) {
                                             Text("Excluir", color = Color(0xFFD32F2F))
                                         }
@@ -503,9 +503,6 @@ fun EventScreen(viewModel: EventViewModel) {
                                     }
                                 }
                             }
-
-
-
                         }
                     }
                 }

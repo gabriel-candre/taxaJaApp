@@ -16,7 +16,6 @@ class EventViewModel(application: EventApplication) : ViewModel() {
         listarTodos()
     }
 
-    // Construtor padrão necessário para ViewModelProvider
     @Suppress("unused")
     constructor() : this(EventApplication.instance)
 
@@ -35,8 +34,8 @@ class EventViewModel(application: EventApplication) : ViewModel() {
 
     fun atualizar(event: Event) {
         viewModelScope.launch {
-            eventDao.atualizar(event) // Atualiza o evento no banco de dados
-            listarTodos() // Recarrega a lista
+            eventDao.atualizar(event)
+            listarTodos()
         }
     }
 

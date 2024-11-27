@@ -13,7 +13,7 @@ interface EventDao {
     suspend fun inserir(event: Event)
 
     @Update
-    suspend fun atualizar(event: Event) // Método para atualizar contato
+    suspend fun atualizar(event: Event)
 
     @Query("SELECT * FROM event")
     suspend fun listarTodos() : List<Event>
