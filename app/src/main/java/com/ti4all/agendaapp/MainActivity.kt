@@ -361,67 +361,100 @@ fun EventScreen(viewModel: EventViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Button(
-                                onClick = {
-                                    onAddClick(
-                                        event.copy(
-                                            title = title,
-                                            date = date,
-                                            time = time,
-                                            cep = cep,
-                                            street = street,
-                                            number = number,
-                                            neighborhood = neighborhood,
-                                            city = city,
-                                            state = state,
-                                            description = description,
-                                            imageUrl = image
+                            if (!isEditMode) {
+                                Button(
+                                    onClick = {
+                                        onAddClick(
+                                            event.copy(
+                                                title = title,
+                                                date = date,
+                                                time = time,
+                                                cep = cep,
+                                                street = street,
+                                                number = number,
+                                                neighborhood = neighborhood,
+                                                city = city,
+                                                state = state,
+                                                description = description,
+                                                imageUrl = image
+                                            )
                                         )
-                                    )
-                                    onDismissRequest()
-                                },
-                                modifier = Modifier.weight(0.5f), // Para ocupar espaço igual
-                                enabled = !isEditMode // Desabilitar se estiver em modo de edição
-                            ) {
-                                Text(" Salvar ")
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
+                                        onDismissRequest()
+                                    },
+                                    modifier = Modifier.weight(1f), // Para ocupar espaço igual
+                                ) {
+                                    Text(" Salvar ")
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
 
-                            Button(
-                                onClick = {
-                                    onEditClick(
-                                        event.copy(
-                                            title = title,
-                                            date = date,
-                                            time = time,
-                                            cep = cep,
-                                            street = street,
-                                            number = number,
-                                            neighborhood = neighborhood,
-                                            city = city,
-                                            state = state,
-                                            description = description,
-                                            imageUrl = image
-                                        )
-                                    ) // Para editar contato
-                                    onDismissRequest()
-                                },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("Edit")
+                                Button(
+                                    onClick = onDismissRequest,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Cancelar")
+                                }
                             }
 
-                            Spacer(modifier = Modifier.width(8.dp))
 
-                            Button(
-                                onClick = {
-                                    onDeleteClick(event.id) // Chama a função de deletar
-                                    onDismissRequest()
-                                },
-                                modifier = Modifier.weight(0.5f) // Para ocupar espaço igual
-                            ) {
-                                Text(" - ")
+                            if (isEditMode) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Button(
+                                            onClick = {
+                                                onEditClick(
+                                                    event.copy(
+                                                        title = title,
+                                                        date = date,
+                                                        time = time,
+                                                        cep = cep,
+                                                        street = street,
+                                                        number = number,
+                                                        neighborhood = neighborhood,
+                                                        city = city,
+                                                        state = state,
+                                                        description = description,
+                                                        imageUrl = image
+                                                    )
+                                                )
+                                                onDismissRequest()
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("Salvar")
+                                        }
+
+                                        Spacer(modifier = Modifier.width(8.dp))
+
+                                        Button(
+                                            onClick = {
+                                                onDeleteClick(event.id) // Chama a função de deletar
+                                                onDismissRequest()
+                                            },
+                                            modifier = Modifier.weight(1f) // Para ocupar espaço igual
+                                        ) {
+                                            Text("Excluir")
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    Button(
+                                        onClick = onDismissRequest,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text("Cancelar")
+                                    }
+                                }
                             }
+
+
+
                         }
                     }
                 }
