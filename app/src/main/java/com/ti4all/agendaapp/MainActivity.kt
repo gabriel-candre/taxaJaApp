@@ -31,8 +31,13 @@ import com.ti4all.agendaapp.ui.theme.AgendaAppTheme
 import coil.compose.rememberImagePainter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -84,38 +89,49 @@ fun EventList(event: Event, onClick: (Event) -> Unit, onEditClick: (Event) -> Un
             )
 
             if (expanded) {
-                Text (text = "Title: ${event.title}")
+                Text (text = "Nome: ${event.title}")
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Time: ${event.time}")
+                Text(text = "Horário: ${event.time}")
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Date: ${event.date}")
+                Text(text = "Data: ${event.date}")
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = "CEP: ${event.cep}")
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Location: ${event.getFullAddres()}")
+                Text(text = "Endereço: ${event.getFullAddres()}")
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Description: ${event.description}")
+                Text(text = "Descrição: ${event.description}")
 
-                Row (
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                    horizontalAlignment =  Alignment.CenterHorizontally
                 ) {
-                    Button(onClick = { expanded = !expanded }) {
-                        Text(text = "Contract description")
-                    }
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowUp,
+                        contentDescription = "Contract arrow"
+                    )
+
+                    Text(
+                        text = "Fechar descrição",
+                        modifier = Modifier.clickable { expanded = !expanded }
+                    )
                 }
 
             } else {
-                Text (text = "Title: ${event.title}")
+                Text (text = "Nome: ${event.title}")
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Row (
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                    horizontalAlignment =  Alignment.CenterHorizontally
                 ) {
-                    Button(onClick = { expanded = !expanded }) {
-                        Text(text = "Expand description")
-                    }
+                    Text(
+                        text = "Mostrar descrição",
+                        modifier = Modifier.clickable { expanded = !expanded }
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Expand arrow"
+                    )
                 }
             }
         }
@@ -139,11 +155,14 @@ fun EventScreen(viewModel: EventViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center) })
             },
-        floatingActionButton = {FloatingActionButton(
-                                onClick = {
-                                    selectedEvent = null
-                                    showDialog = true }
-            ) {Icon(Icons.Filled.Add, contentDescription = "Adicionar evento")
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    selectedEvent = null
+                    showDialog = true },
+                modifier = Modifier.width(176.dp).padding(vertical = 16.dp)
+            ) {
+                Text("Novo evento")
             }
         }
     ) { innerPadding ->
@@ -278,7 +297,7 @@ fun EventScreen(viewModel: EventViewModel) {
                         OutlinedTextField(
                             value = title,
                             onValueChange = { title = it },
-                            label = { Text("Title") }
+                            label = { Text("Title") },
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
@@ -359,8 +378,13 @@ fun EventScreen(viewModel: EventViewModel) {
                             } else {
                                 storagePermissionState.launchPermissionRequest()
                             }
-                        }) {
-                            Text("Select event banner image")
+                        },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RectangleShape,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            border = BorderStroke(1.dp, Color.White)
+                        ) {
+                            Text("Inserir imagem", color = Color.White)
                         }
 
                         imageUri.value?.let {
@@ -374,7 +398,10 @@ fun EventScreen(viewModel: EventViewModel) {
                             )
                         }
 
-                        // Usando Row para colocar os botões lado a lado
+                        Spacer(modifier = Modifier.height(16.dp)) // Espaço antes do divisor
+                        Divider() // Linha separadora
+                        Spacer(modifier = Modifier.height(16.dp))
+
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
@@ -399,15 +426,17 @@ fun EventScreen(viewModel: EventViewModel) {
                                         )
                                         onDismissRequest()
                                     },
-                                    modifier = Modifier.weight(1f), // Para ocupar espaço igual
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                                    border = BorderStroke(1.dp, Color(0xFF388E3C)) //Verde
                                 ) {
-                                    Text(" Salvar ")
+                                    Text(" Salvar ", color = Color(0xFF388E3C))
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
 
                                 Button(
                                     onClick = onDismissRequest,
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                                 ) {
                                     Text("Cancelar")
                                 }
@@ -442,21 +471,25 @@ fun EventScreen(viewModel: EventViewModel) {
                                                 )
                                                 onDismissRequest()
                                             },
-                                            modifier = Modifier.weight(1f)
+                                            modifier = Modifier.weight(1f),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                                            border = BorderStroke(1.dp, Color(0xFF388E3C)) //Verde
                                         ) {
-                                            Text("Salvar")
+                                            Text("Salvar", color = Color(0xFF388E3C))
                                         }
 
                                         Spacer(modifier = Modifier.width(8.dp))
 
                                         Button(
                                             onClick = {
-                                                onDeleteClick(event.id) // Chama a função de deletar
+                                                onDeleteClick(event.id)
                                                 onDismissRequest()
                                             },
-                                            modifier = Modifier.weight(1f) // Para ocupar espaço igual
+                                            modifier = Modifier.weight(1f),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                                            border = BorderStroke(1.dp, Color(0xFFD32F2F)) //Verde
                                         ) {
-                                            Text("Excluir")
+                                            Text("Excluir", color = Color(0xFFD32F2F))
                                         }
                                     }
 
@@ -464,7 +497,7 @@ fun EventScreen(viewModel: EventViewModel) {
 
                                     Button(
                                         onClick = onDismissRequest,
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                                     ) {
                                         Text("Cancelar")
                                     }
