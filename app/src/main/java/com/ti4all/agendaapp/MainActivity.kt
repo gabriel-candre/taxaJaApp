@@ -1,5 +1,6 @@
 package com.ti4all.agendaapp
 
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -31,7 +32,9 @@ import coil.compose.rememberImagePainter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -55,6 +58,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun EventList(event: Event, onClick: (Event) -> Unit, onEditClick: (Event) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
+
+    fun Event.getFullAddres(): String {
+        return "$street, $number - $neighborhood, $city/$state"
+    }
 
     Card(
         modifier = Modifier
@@ -85,25 +92,31 @@ fun EventList(event: Event, onClick: (Event) -> Unit, onEditClick: (Event) -> Un
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = "CEP: ${event.cep}")
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Street: ${event.street}")
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Number: ${event.number}")
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Neighborhood: ${event.neighborhood}")
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "City: ${event.city}")
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "State: ${event.state}")
+                Text(text = "Location: ${event.getFullAddres()}")
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = "Description: ${event.description}")
+
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(onClick = { expanded = !expanded }) {
+                        Text(text = "Contract description")
+                    }
+                }
+
             } else {
                 Text (text = "Title: ${event.title}")
                 Spacer(modifier = Modifier.height(8.dp))
-            }
 
-
-            Button(onClick = { expanded = !expanded }) {
-                Text(text = "Expand description")
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(onClick = { expanded = !expanded }) {
+                        Text(text = "Expand description")
+                    }
+                }
             }
         }
     }
@@ -127,7 +140,9 @@ fun EventScreen(viewModel: EventViewModel) {
                     textAlign = TextAlign.Center) })
             },
         floatingActionButton = {FloatingActionButton(
-                                onClick = { showDialog = true }
+                                onClick = {
+                                    selectedEvent = null
+                                    showDialog = true }
             ) {Icon(Icons.Filled.Add, contentDescription = "Adicionar evento")
             }
         }
@@ -146,17 +161,6 @@ fun EventScreen(viewModel: EventViewModel) {
                 )
             }
         }
-        /*
-        if (showDialog) {
-            AgendaFormDialog(
-                onDismissRequest = { showDialog = false }
-            ) { nome, telefone ->
-                viewModel.inserir(Agenda(nome = nome, telefone = telefone))
-                showDialog = false
-            }
-        }
-
-         */
         if (showDialog && selectedEvent != null) {
             EventFormDialog(
                 event = selectedEvent!!, // Passa o evento selecionado
@@ -179,14 +183,17 @@ fun EventScreen(viewModel: EventViewModel) {
         } else if (showDialog) {
             EventFormDialog(
                 event = Event(title = "", time = "", date = "", cep = "", street = "", number = "", neighborhood = "", city = "", state = "", description = "", imageUrl = ""), // Passa um novo objeto vazio para adicionar
-                isEditMode = false, // Indica que estamos incluindo
-                onDismissRequest = { showDialog = false },
+                isEditMode = selectedEvent != null, // Indica que estamos incluindo
+                onDismissRequest = {
+                    showDialog = false
+                    selectedEvent = null },
+
                 onAddClick = { newEvent ->
                     viewModel.inserir(newEvent) // Adiciona novo contato
                     showDialog = false
                 },
-                onEditClick = { /* Não faz nada, pois é um novo contato */ },
-                onDeleteClick = { /* Não faz nada, pois não há id para novo contato */ }
+                onEditClick = {  },
+                onDeleteClick = {  }
             )
         }
     }
@@ -209,6 +216,49 @@ fun EventScreen(viewModel: EventViewModel) {
 
         val storagePermissionState = rememberPermissionState(android.Manifest.permission.READ_EXTERNAL_STORAGE)
 
+
+        var title by remember { mutableStateOf(event.title) }
+        var date by remember { mutableStateOf(event.date) }
+        var time by remember { mutableStateOf(event.time) }
+        var cep by remember { mutableStateOf(event.cep) }
+        var street by remember { mutableStateOf(event.street) }
+        var number by remember { mutableStateOf(event.number) }
+        var neighborhood by remember { mutableStateOf(event.neighborhood) }
+        var city by remember { mutableStateOf(event.city) }
+        var state by remember { mutableStateOf(event.state) }
+        var description by remember { mutableStateOf(event.description) }
+        var image by remember { mutableStateOf(event.imageUrl) }
+
+        fun fetchCepData(cep: String, context: Context) {
+            if (cep.length != 8 || !cep.all { it.isDigit() }) {
+                Toast.makeText(context, "CEP inválido. Deve conter 8 dígitos numéricos.", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            runCatching {
+                RetrofitClient.instance.getCep(cep).enqueue(object : Callback<CepResponse> {
+                    override fun onResponse(call: Call<CepResponse>, response: Response<CepResponse>) {
+                        if (response.isSuccessful) {
+                            response.body()?.let {
+                                street = it.logradouro
+                                neighborhood = it.bairro
+                                city = it.localidade
+                                state = it.uf
+                            }
+                        } else {
+                            Toast.makeText(context, "CEP não encontrado.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<CepResponse>, t: Throwable) {
+                        Toast.makeText(context, "Erro ao buscar CEP: ${t.message}", Toast.LENGTH_SHORT).show()
+                    }
+                })
+            }.onFailure {
+                Toast.makeText(context, "Erro ao processar o CEP: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         Dialog(onDismissRequest = onDismissRequest) {
             Surface(
                 modifier = Modifier
@@ -225,42 +275,6 @@ fun EventScreen(viewModel: EventViewModel) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     item {
-
-                        var title by remember { mutableStateOf(event.title) }
-                        var date by remember { mutableStateOf(event.date) }
-                        var time by remember { mutableStateOf(event.time) }
-                        var cep by remember { mutableStateOf(event.cep) }
-                        var street by remember { mutableStateOf(event.street) }
-                        var number by remember { mutableStateOf(event.number) }
-                        var neighborhood by remember { mutableStateOf(event.neighborhood) }
-                        var city by remember { mutableStateOf(event.city) }
-                        var state by remember { mutableStateOf(event.state) }
-                        var description by remember { mutableStateOf(event.description) }
-                        var image by remember { mutableStateOf(event.imageUrl) }
-
-                        val context = LocalContext.current
-
-                        fun fetchCepData(cep: String) {
-                            RetrofitClient.instance.getCep(cep).enqueue(object : Callback<CepResponse> {
-                                override fun onResponse(call: Call<CepResponse>, response: Response<CepResponse>) {
-                                    if (response.isSuccessful) {
-                                        response.body()?.let {
-                                            street = it.logradouro
-                                            neighborhood = it.bairro
-                                            city = it.localidade
-                                            state = it.uf
-                                        }
-                                    } else {
-                                        Toast.makeText(context, "CEP não encontrado", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-
-                                override fun onFailure(call: Call<CepResponse>, t: Throwable) {
-                                    Toast.makeText(context, "Erro: ${t.message}", Toast.LENGTH_SHORT).show()
-                                }
-                            })
-                        }
-
                         OutlinedTextField(
                             value = title,
                             onValueChange = { title = it },
@@ -285,11 +299,15 @@ fun EventScreen(viewModel: EventViewModel) {
                         OutlinedTextField(
                             value = cep,
                             onValueChange = {
-                                cep = it
-                                if (cep.length == 8) {
-                                    fetchCepData(cep)
+                                if (it.length <= 8) {
+                                    cep = it
+                                    if(cep.length == 8) {
+                                        fetchCepData(cep, context)
+                                    }
+
                                 } },
-                            label = { Text("CEP") }
+                            label = { Text("CEP") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
