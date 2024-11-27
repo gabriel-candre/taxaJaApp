@@ -117,8 +117,8 @@ fun EventList(event: Event, onClick: (Event) -> Unit, onEditClick: (Event) -> Un
                 }
 
             } else {
-                Text (text = "Nome: ${event.title}")
-                Spacer(modifier = Modifier.height(8.dp))
+                //Text (text = "Nome: ${event.title}")
+                //Spacer(modifier = Modifier.height(8.dp))
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
